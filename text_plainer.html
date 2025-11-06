@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>改行・空白なしプレーンテキスト変換</title>
+</head>
+<body>
+  <h1>改行・空白なしプレーンテキスト変換</h1>
+
+  <p>雑テキストを貼って「変換」を押すと、改行や空白（全角含む）・ゼロ幅空白をすべて削除します。</p>
+
+  <label for="inputText">入力</label><br>
+  <textarea id="inputText" rows="10" cols="80" placeholder="ここにテキストを貼り付け"></textarea>
+  <br><br>
+
+  <button id="convertBtn">変換</button>
+  <button id="copyBtn">結果をコピー</button>
+  <button id="clearBtn">クリア</button>
+  <br><br>
+
+  <label for="outputText">結果（改行・空白なし）</label><br>
+  <textarea id="outputText" rows="6" cols="80" readonly></textarea>
+  <div id="meta"></div>
+
+  <script>
+    // 改行, 半角/全角スペース, タブ, NBSP, ゼロ幅空白を一括除去
+    function toPlainNoWhitespace(str) {
+      // 改行コード正規化（CRLF→LF）
+      const normalized = str.replace(/\r\n?/g, "\n");
+      // 取り除く対象:
+      // \s = 半角空白/タブ/改行 等
+      // \u3000 = 全角スペース
+      // \u00A0 = NBSP
+      // \u200B-\u200D = ゼロ幅スペース/結合子
+      // \uFEFF = BOM/ゼロ幅非改行
+      const removed = normalized.replace(/[\s\u3000\u00A0\u200B-\u200D\uFEFF]+/g, "");
+      return removed;
+    }
+
+    function convert() {
+      const input = document.getElementById("inputText").value || "";
+      const output = toPlainNoWhitespace(input);
+      const outEl = document.getElementById("outputText");
+      outEl.value = output;
+
+      const meta = document.getElementById("meta");
+      meta.textContent = `文字数: ${output.length}`;
+    }
+
+    function copyResult() {
+      const outEl = document.getElementById("outputText");
+      if (!outEl.value) return;
+      navigator.clipboard.writeText(outEl.value).then(
+        () => alert("コピーしました"),
+        () => alert("コピーに失敗しました")
+      );
+    }
+
+    function clearAll() {
+      document.getElementById("inputText").value = "";
+      document.getElementById("outputText").value = "";
+      document.getElementById("meta").textContent = "";
+      document.getElementById("inputText").focus();
+    }
+
+    document.getElementById("convertBtn").addEventListener("click", convert);
+    document.getElementById("copyBtn").addEventListener("click", copyResult);
+    document.getElementById("clearBtn").addEventListener("click", clearAll);
+
+    // 入力のたびに即時変換したい場合は下行を有効化
+    // document.getElementById("inputText").addEventListener("input", convert);
+  </script>
+</body>
+</html>
